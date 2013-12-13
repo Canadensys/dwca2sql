@@ -4,3 +4,9 @@
 *.jar
 *.war
 *.ear
+
+# Misc files
+*.DS_Store
+
+target/
+work/

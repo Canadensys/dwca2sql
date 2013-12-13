@@ -8,6 +8,14 @@ _Darwin Core to SQL_ (dwca2sql) is a lightweight tool to ease the importation of
 ## How to use the tool?
 You use the tool from the command line.
 
+### Build the tool
+```bash
+mvn clean package
+```
+
+### Tool structure
+Once built, the .jar file will be available in the `target` folder. If you want to move the tool, make sure to carry the `lib` folder.
+
 ### Arguments
 | Argument | Description | Default |Mandatory|
 | -------- | ----------- | ------- |-------  |
@@ -30,7 +38,6 @@ Import into MySQL:
 mysql -hHOST -uUSER -pPASSWORD -DDATABASE_NAME --default_character_set utf8 -e "source /tmp/unicorn.sql"
 ```
 ## Known limitations
-* Extensions are not supported at this time.
 * Data types are taken from the meta.xml file, not from the Darwin Core definitions.
 * Only mysql and postgres are implemented for database type.
 * Only executable from the command line.
