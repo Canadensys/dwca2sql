@@ -40,6 +40,7 @@ The tool makes the assumption that you trust the Darwin Core Archive file that y
 
 ## Acknowledgements
 These are the third-party software tools used for this tool:
+
 | Component | Version | Developed by |License|Source|
 | -------- | ----------- | ------- |-------  |-------  |
 |DarwinCore Archive Reader|	1.9.1	| GBIF	| Apache License 2.0	|http://code.google.com/p/darwincore/wiki/DarwinCoreArchiveReader|
