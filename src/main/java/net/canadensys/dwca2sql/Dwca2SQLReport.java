@@ -1,6 +1,3 @@
-/*
-	Copyright (c) 2011 Canadensys
-*/
 package net.canadensys.dwca2sql;
 
 import java.util.List;
@@ -14,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
  */
 public class Dwca2SQLReport {
 	
+	private String dwcaComponent;
 	private String targetFile;
 	private List<String> parsingError = null;
 	private List<String> parsingWarning = null;
@@ -21,7 +19,8 @@ public class Dwca2SQLReport {
 	private int totalRow;
 	private Exception exception = null;
 	
-	public Dwca2SQLReport(String targetFile){
+	public Dwca2SQLReport(String dwcaComponent, String targetFile){
+		this.dwcaComponent = dwcaComponent;
 		this.targetFile = targetFile;
 	}
 	
@@ -75,12 +74,12 @@ public class Dwca2SQLReport {
 	 * Prints result on the standard output
 	 */
 	public void printReport(){
-		
+		System.out.println("----"+dwcaComponent+"----");
 		if(isSuccessful()){
-			System.out.println("SQL file was successfully generated:");
+			System.out.println("Successfully generated:");
 		}
 		else{
-			System.out.println("SQL file could not be generated:");
+			System.out.println("Could not be generated:");
 		}
 		
 		if(exception != null){
@@ -94,10 +93,11 @@ public class Dwca2SQLReport {
 			System.out.println("You should fix the above warnings but the file " + targetFile + " is still valid.");
 		}
 		
+		//If no error found
 		if(parsingError == null || parsingError.isEmpty()){
 			System.out.println("-Processing time: "+totalTime + " ms");
 			System.out.println("-Number of rows: "+totalRow);
-			System.out.println("-File :" + targetFile);
+			System.out.println("-File:" + targetFile);
 		}
 		else{
 			System.out.println("Parsing ERRORS:");

@@ -1,34 +1,23 @@
-/*
-	Copyright (c) 2011 Canadensys
-*/
 package net.canadensys.dwca2sql;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.util.List;
 import java.util.Scanner;
 
-import net.canadensys.dwca2sql.config.AbstractDatabaseConfig;
 import net.canadensys.dwca2sql.config.ConfigValidator;
-import net.canadensys.dwca2sql.config.DatabaseConfigFactory;
 import net.canadensys.dwca2sql.config.Dwca2SQLConfig;
+import net.canadensys.dwca2sql.config.database.AbstractDatabaseConfig;
+import net.canadensys.dwca2sql.config.database.DatabaseConfigFactory;
+import net.canadensys.utils.ZipUtils;
 
-import org.apache.commons.compress.archivers.ArchiveException;
-import org.apache.commons.compress.archivers.ArchiveInputStream;
 import org.apache.commons.compress.archivers.ArchiveStreamFactory;
-import org.apache.commons.compress.archivers.zip.ZipArchiveEntry;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.log4j.BasicConfigurator;
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveFactory;
-import org.gbif.dwc.text.ArchiveFile;
 import org.gbif.dwc.text.UnsupportedArchiveException;
 
 
@@ -68,6 +57,7 @@ public class Dwca2SQLMain {
 			
 			Archive dwcArchive;
 			try {
+				File sourceFile = new File(dwcaConfig.getSourceFile());
 				if(FilenameUtils.isExtension(dwcaConfig.getSourceFile(), ArchiveStreamFactory.ZIP)){
 					//make sure the user want to overwrite destination file
 					if(!dwcaConfig.isForceMode() && new File(getUnzipFolder(dwcaConfig.getSourceFile())).exists()){
@@ -77,20 +67,23 @@ public class Dwca2SQLMain {
 						}
 					}
 					
-					unzipFile(dwcaConfig.getSourceFile());
+					ZipUtils.unzipFileOrFolder(sourceFile,null);
 					dwcArchive = ArchiveFactory.openArchive(new File(FilenameUtils.removeExtension(dwcaConfig.getSourceFile())));
 				}
 				else{
-					dwcArchive = ArchiveFactory.openArchive(new File(dwcaConfig.getSourceFile()));
+					dwcArchive = ArchiveFactory.openArchive(sourceFile);
 				}
 
-				ArchiveFile dwcaCore = dwcArchive.getCore();
+				//ArchiveFile dwcaCore = dwcArchive.getCore();
 				
 				AbstractDatabaseConfig dbConfigObj = DatabaseConfigFactory.buildDatabaseConfig(dwcaConfig.getDatabaseType());
 				DwcaSQLProcessor dwcaSQLProcessor = new DwcaSQLProcessor(dwcaConfig, dbConfigObj);
-				Dwca2SQLReport report = dwcaSQLProcessor.processDwcaCore(dwcaCore);
-				//Print result
-				report.printReport();
+				
+				List<Dwca2SQLReport> reportList = dwcaSQLProcessor.processDarwinCoreArchive(dwcArchive);
+				for(Dwca2SQLReport report : reportList){
+					//Print result
+					report.printReport();
+				}
 			} catch (UnsupportedArchiveException e) {
 				e.printStackTrace();
 			} catch (IOException e) {
@@ -101,50 +94,6 @@ public class Dwca2SQLMain {
 	
 	private static String getUnzipFolder(String zipFilePath){
 		return FilenameUtils.removeExtension(zipFilePath);
-	}
-	
-	private static boolean unzipFile(String zipFilePath){
-		InputStream is;
-		ArchiveInputStream in = null;
-		OutputStream out  = null;
-		try {
-			is = new FileInputStream(zipFilePath);
-			String folderName = getUnzipFolder(zipFilePath);
-			new File(folderName).mkdir();
-			
-			in = new ArchiveStreamFactory().createArchiveInputStream(ArchiveStreamFactory.ZIP, is);
-			
-			ZipArchiveEntry entry = (ZipArchiveEntry)in.getNextEntry();
-			while(entry != null){
-				out = new FileOutputStream(new File(folderName, entry.getName()));
-				IOUtils.copy(in, out);
-				out.close();
-				out = null;
-				entry = (ZipArchiveEntry)in.getNextEntry();
-			}	
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-			return false;
-		} catch (ArchiveException e) {
-			e.printStackTrace();
-			return false;
-		} catch (IOException e) {
-			e.printStackTrace();
-			return false;
-		}
-		finally{
-			if(out != null){
-				try {
-					out.close();
-				} catch (IOException e) {}
-			}
-			if(in != null){
-				try {
-					in.close();
-				} catch (IOException e) {}
-			}
-		}
-		return true;
 	}
 	
 	/**

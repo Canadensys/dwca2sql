@@ -1,7 +1,7 @@
 /*
 	Copyright (c) 2011 Canadensys
 */
-package net.canadensys.dwca2sql.config;
+package net.canadensys.dwca2sql.config.database;
 
 /**
  * Abstract class to allow different implementations for specific databases.

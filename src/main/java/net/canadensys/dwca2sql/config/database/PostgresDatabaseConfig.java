@@ -1,7 +1,8 @@
 /*
 	Copyright (c) 2011 Canadensys
 */
-package net.canadensys.dwca2sql.config;
+package net.canadensys.dwca2sql.config.database;
+
 
 /**
  * Specific configuration for Postgres databases

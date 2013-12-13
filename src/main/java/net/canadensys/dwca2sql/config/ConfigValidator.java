@@ -1,12 +1,9 @@
-/*
-	Copyright (c) 2011 Canadensys
-*/
 package net.canadensys.dwca2sql.config;
 
 import java.io.File;
 
 import net.canadensys.dwca2sql.CliManager;
-import net.canadensys.dwca2sql.config.DatabaseConfigFactory.DatabaseTypeEnum;
+import net.canadensys.dwca2sql.config.database.DatabaseConfigFactory.DatabaseTypeEnum;
 
 /**
  * Configuration validator for Dwca2SQL.

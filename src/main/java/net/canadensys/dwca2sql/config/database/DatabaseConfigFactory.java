@@ -1,7 +1,8 @@
 /*
 	Copyright (c) 2011 Canadensys
 */
-package net.canadensys.dwca2sql.config;
+package net.canadensys.dwca2sql.config.database;
+
 
 /**
  * Factory responsible for creating the instance of a specific database configuration object.

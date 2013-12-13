@@ -1,6 +1,3 @@
-/*
-	Copyright (c) 2011 Canadensys
-*/
 package net.canadensys.dwca2sql;
 
 import java.io.File;
@@ -11,11 +8,14 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import net.canadensys.dwca2sql.config.AbstractDatabaseConfig;
 import net.canadensys.dwca2sql.config.Dwca2SQLConfig;
+import net.canadensys.dwca2sql.config.database.AbstractDatabaseConfig;
 
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
+import org.gbif.dwc.text.Archive;
 import org.gbif.dwc.text.ArchiveField;
 import org.gbif.dwc.text.ArchiveFile;
 
@@ -56,27 +56,42 @@ public class DwcaSQLProcessor {
 		this.createStatementQuotedColumn = dbConfig.getColumnEscapeChar() + "%s" + dbConfig.getColumnEscapeChar() + " %s";
 		this.insertStatementQuotedColumn = dbConfig.getColumnEscapeChar() + "%s" + dbConfig.getColumnEscapeChar();
 	}
-
-	public Dwca2SQLReport processDwcaCore(ArchiveFile dwcaCore) {
+	
+	public List<Dwca2SQLReport> processDarwinCoreArchive(Archive dwcArchive) {
+		List<Dwca2SQLReport> reportList = new ArrayList<Dwca2SQLReport>();
+		reportList.add(processDwcaCore(dwcArchive.getCore(),false));
+		for(ArchiveFile extension: dwcArchive.getExtensions()){
+			reportList.add(processDwcaCore(extension,true));
+		}
+		return reportList;
+	}
+	
+	/**
+	 * Process a DarwinCore Archive component into SQL statements
+	 * @param dwcaComponent (e.g. core, distribution extension, ...)
+	 * @param appendToExistingFile should the SQL statements be appended to the existing destinationFile
+	 * @return
+	 */
+	protected Dwca2SQLReport processDwcaCore(ArchiveFile dwcaComponent, boolean appendToExistingFile) {
 		ArrayList<String> toFile = new ArrayList<String>();
-		Dwca2SQLReport report = new Dwca2SQLReport(appConfig.getDestinationFile());
 		long start = System.currentTimeMillis();
+		Dwca2SQLReport report = new Dwca2SQLReport(FilenameUtils.getBaseName(dwcaComponent.getTitle()).toUpperCase(), appConfig.getDestinationFile());
 		
 		//use the last part of the rowType as table name
-		String tableName = dwcaCore.getRowType().substring(dwcaCore.getRowType().lastIndexOf("/")+1).toLowerCase();
+		String tableName = dwcaComponent.getRowType().substring(dwcaComponent.getRowType().lastIndexOf("/")+1).toLowerCase();
 		if(appConfig.getDestinationTablePrefix()!= null){
 			tableName = appConfig.getDestinationTablePrefix()+"_"+tableName;
 		}
 		
 		//CREATE TABLE
 		if(appConfig.isCreateTableStatementRequired()){
-			toFile.add(generateCreateStatement(dwcaCore,tableName));
+			toFile.add(generateCreateStatement(dwcaComponent,tableName));
 		}
 		
 		//INSERT INTO
 		if(appConfig.isInsertStatementRequired()){
 			//INSERT statement preparation
-			InsertPreparationResult prepResult =  prepareInsertStatement(dwcaCore);
+			InsertPreparationResult prepResult =  prepareInsertStatement(dwcaComponent);
 			String columnNames = StringUtils.join(prepResult.getColumnNamesList(),',');
 			ColumnTypeEnum[] columnType = prepResult.getColumnType().toArray(new ColumnTypeEnum[0]);
 			String columnsDefaultValuesStr = StringUtils.join(prepResult.getColumnDefaultValues(), ",");
@@ -88,10 +103,10 @@ public class DwcaSQLProcessor {
 			Iterator<String[]> rowsIt;
 			
 			try {
-				org.apache.commons.io.FileUtils.writeLines(new File(appConfig.getDestinationFile()), OUTPUT_FILE_ENCODING, toFile, false);
+				FileUtils.writeLines(new File(appConfig.getDestinationFile()), OUTPUT_FILE_ENCODING, toFile, appendToExistingFile);
 				toFile.clear();
 				
-				rowsIt = dwcaCore.getCSVReader().iterator();
+				rowsIt = dwcaComponent.getCSVReader().iterator();
 				int col = 0;
 				int rowQty = 0;
 				int insertRowQty = 0;
@@ -183,7 +198,7 @@ public class DwcaSQLProcessor {
 						toFile.add(columnValues.toString());
 						rowQty++;
 						if(rowQty == BUFFER_SIZE){
-							org.apache.commons.io.FileUtils.writeLines(new File(appConfig.getDestinationFile()), OUTPUT_FILE_ENCODING, toFile, true);
+							FileUtils.writeLines(new File(appConfig.getDestinationFile()), OUTPUT_FILE_ENCODING, toFile, true);
 							toFile.clear();
 							rowQty = 0;
 						}
@@ -194,7 +209,7 @@ public class DwcaSQLProcessor {
 				report.setResult(parsingErrorList, System.currentTimeMillis()-start, rowNumber, parsingWarningList);
 				
 				if(parsingErrorList.isEmpty()){
-					org.apache.commons.io.FileUtils.writeLines(new File(appConfig.getDestinationFile()), OUTPUT_FILE_ENCODING, toFile, true);
+					FileUtils.writeLines(new File(appConfig.getDestinationFile()), OUTPUT_FILE_ENCODING, toFile, true);
 				}
 			} catch (IOException e) {
 				report.setResult(e);

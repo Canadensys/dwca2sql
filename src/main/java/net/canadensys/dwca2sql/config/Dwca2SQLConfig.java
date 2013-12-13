@@ -1,8 +1,10 @@
-/*
-	Copyright (c) 2011 Canadensys
-*/
 package net.canadensys.dwca2sql.config;
 
+/**
+ * dwca2sql tool configurations
+ * @author canadensys
+ *
+ */
 public class Dwca2SQLConfig {
 	
 	public static final String DEFAULT_DESTINATION_FILE = "dwca2sqlresult.sql";

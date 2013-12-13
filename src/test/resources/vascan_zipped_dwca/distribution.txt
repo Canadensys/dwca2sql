@@ -1,0 +1,6 @@
+id	locationID	locality	countryCode	occurrenceStatus	establishmentMeans	source	occurrenceRemarks
+8012	ISO 3166-2:CA-AB	Alberta	CA	excluded		Gould, J. 2010. (pers. comm.)	Not documented
+8012	ISO 3166-2:CA-BC	British Columbia	CA	doubtful			
+8012	ISO 3166-2:CA-NT	Northwest Territories	CA	doubtful			
+8012	ISO 3166-2:CA-SK	Saskatchewan	CA	doubtful			
+8012	ISO 3166-2:CA-YT	Yukon	CA	excluded		Bennett, B. Yukon List. (pers. comm.)	Not documented

@@ -1,7 +1,7 @@
-/*
-	Copyright (c) 2011 Canadensys
-*/
 package net.canadensys.dwca2sql;
+
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,19 +24,21 @@ public class PostgresTestCase {
 	@Test
 	public void testDwcaWithDefaultField() {
 		String testId = "postgres1";
-		
-		String sourceFolder = TestCaseUtil.TEST_RESOURCES_FOLDER+"vascan_dwca_test_1";
-		String destinationFile = TestCaseUtil.getDestinationFileRelativePath(testId);
-		String expectedFile = TestCaseUtil.getExpectedFileRelativePath(testId);
-		
+
+		String sourceFolder = TestCaseUtil.getResourceFile("/vascan_dwca_test_1").getAbsolutePath();
+		String destinationFile = TestCaseUtil.getDestinationFilePath(testId);
+		String expectedFile = TestCaseUtil.getExpectedFile("/",testId).getAbsolutePath();
+
 		String[] args = {"-ci", "-s",sourceFolder,"-o",destinationFile,"-f","-d","postgres"};
 		new Dwca2SQLMain(args);
 		
 		try {
-			org.junit.Assert.assertTrue(FileUtils.contentEquals(new File(destinationFile), new File(expectedFile)));
+			assertTrue(new File(destinationFile).exists());
+			assertTrue(new File(expectedFile).exists());
+			assertTrue(FileUtils.contentEquals(new File(destinationFile), new File(expectedFile)));
 		} catch (IOException e) {
 			e.printStackTrace();
+			fail();
 		}
 	}
-
 }
