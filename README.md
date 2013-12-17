@@ -5,6 +5,10 @@ dwca2sql
 
 _Darwin Core to SQL_ (dwca2sql) is a lightweight tool to ease the importation of [Darwin Core archives](http://rs.tdwg.org/dwc/terms/guides/text/index.htm) into a relational database. It translates the structure and content of a Darwin Core Archive file into CREATE TABLE and/or INSERT INTO SQL statements, packaged as an .sql file, which you can then import in your database.
 
+## Code Status
+-----------
+[![Build Status](https://travis-ci.org/Canadensys/dwca2sql.png)](https://travis-ci.org/Canadensys/dwca2sql)
+
 ## How to use the tool?
 You use the tool from the command line.
 
