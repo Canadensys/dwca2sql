@@ -9,6 +9,8 @@ import java.io.IOException;
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 
+import com.google.common.base.Charsets;
+
 
 /**
  * JUnit 4 test class to generate simple tests on a mySQL compliant file.
@@ -35,7 +37,7 @@ public class MySQLTestCase {
 		try {
 			assertTrue(new File(destinationFile).exists());
 			assertTrue(new File(expectedFile).exists());
-			assertTrue(FileUtils.contentEquals(new File(destinationFile), new File(expectedFile)));
+			assertTrue(FileUtils.contentEqualsIgnoreEOL(new File(destinationFile), new File(expectedFile),Charsets.UTF_8.name()));
 		} catch (IOException e) {
 			e.printStackTrace();
 			fail();
@@ -60,7 +62,7 @@ public class MySQLTestCase {
 		try {
 			assertTrue(new File(destinationFile).exists());
 			assertTrue(new File(expectedFile).exists());
-			assertTrue(FileUtils.contentEquals(new File(destinationFile), new File(expectedFile)));
+			assertTrue(FileUtils.contentEqualsIgnoreEOL(new File(destinationFile), new File(expectedFile),Charsets.UTF_8.name()));
 		} catch (IOException e) {
 			e.printStackTrace();
 			fail();
@@ -85,7 +87,7 @@ public class MySQLTestCase {
 		try {
 			assertTrue(new File(destinationFile).exists());
 			assertTrue(new File(expectedFile).exists());
-			assertTrue(FileUtils.contentEquals(new File(destinationFile), new File(expectedFile)));
+			assertTrue(FileUtils.contentEqualsIgnoreEOL(new File(destinationFile), new File(expectedFile),Charsets.UTF_8.name()));
 		} catch (IOException e) {
 			e.printStackTrace();
 			fail();
