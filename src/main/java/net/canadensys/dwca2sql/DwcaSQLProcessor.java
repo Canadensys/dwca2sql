@@ -13,6 +13,7 @@ import net.canadensys.dwca2sql.config.database.AbstractDatabaseConfig;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.gbif.dwc.text.Archive;
@@ -225,18 +226,23 @@ public class DwcaSQLProcessor {
 	 * @return
 	 */
 	private String generateCreateStatement(ArchiveFile dwcaCore, String tableName){
-		ArchiveField indexField = dwcaCore.getId();
-		ArrayList<String> indexedColumns = new ArrayList<String>();
-		ArrayList<String> nonIndexedColumns = new ArrayList<String>();
 		List<ArchiveField> sortedFieldList = dwcaCore.getFieldsSorted();
 		
-		if(indexField != null && indexField.getIndex() != null){
-			indexedColumns.add(indexField.getIndex(), String.format(createStatementQuotedColumn, ID_COLUMN_NAME, dbConfig.getStringColumnType()));
-		}
+		ArrayList<String> indexedColumns = new ArrayList<String>();
+		ArrayList<String> nonIndexedColumns = new ArrayList<String>();
+		
+		//id column handling
+		Integer idIndex = (dwcaCore.getId()!= null) ? dwcaCore.getId().getIndex() : null;
+		//used to check if the id column is used within another term or not
+		boolean idColumnIncluded = false;
+
 		String createStmtColumn;
 		for(ArchiveField currArField : sortedFieldList){
 			createStmtColumn = String.format(createStatementQuotedColumn, currArField.getTerm().simpleName(), getSQLColumnType(currArField));
 			if(currArField.getIndex() != null){
+				if(currArField.getIndex().equals(idIndex)){
+					idColumnIncluded = true;
+				}
 				indexedColumns.add(createStmtColumn);
 			}
 			else{
@@ -244,9 +250,15 @@ public class DwcaSQLProcessor {
 			}
 		}
 		indexedColumns.addAll(nonIndexedColumns);
+		
+		//if the id column was not added
+		if(!idColumnIncluded && idIndex != null){
+			indexedColumns.add(idIndex, String.format(createStatementQuotedColumn, ID_COLUMN_NAME, dbConfig.getStringColumnType()));
+		}
+		
 		String columnsDef = StringUtils.join(indexedColumns, ',');
 		
-		String createStatement = (String.format(dbConfig.getCreateTableStatement(), tableName, columnsDef));
+		String createStatement = String.format(dbConfig.getCreateTableStatement(), tableName, columnsDef);
 		return createStatement;
 	}
 	
@@ -265,25 +277,32 @@ public class DwcaSQLProcessor {
 		ArrayList<ColumnTypeEnum> nonIndexedColumnsType = new ArrayList<ColumnTypeEnum>();
 		List<String> columnDefaultValues = new ArrayList<String>();
 		
-		List<ArchiveField> sortedFieldList = dwcaCore.getFieldsSorted();
+		//id column handling
+		Integer idIndex = (dwcaCore.getId()!= null) ? dwcaCore.getId().getIndex() : null;
+		//used to check if the id column is used within another term or not
+		boolean idColumnIncluded = false;
 		
-		//is this mandatory ?
-		ArchiveField indexField = dwcaCore.getId();
-		if(indexField != null && indexField.getIndex() != null){
-			indexedColumns.add(indexField.getIndex(), String.format(insertStatementQuotedColumn,ID_COLUMN_NAME));
-			indexedColumnsType.add(indexField.getIndex(), getColumnTypeEnum(indexField));
-		}
+		List<ArchiveField> sortedFieldList = dwcaCore.getFieldsSorted();
 		
 		for(ArchiveField currArField : sortedFieldList){
 			if(currArField.getIndex() != null){
-				indexedColumns.add(currArField.getIndex(), String.format(insertStatementQuotedColumn,currArField.getTerm().simpleName()));
-				indexedColumnsType.add(currArField.getIndex(), getColumnTypeEnum(currArField));
+				if(currArField.getIndex().equals(idIndex)){
+					idColumnIncluded = true;
+				}
+				indexedColumns.add(String.format(insertStatementQuotedColumn,currArField.getTerm().simpleName()));
+				indexedColumnsType.add(getColumnTypeEnum(currArField));
 			}
 			else{
 				nonIndexedColumns.add(String.format(insertStatementQuotedColumn,currArField.getTerm().simpleName()));
 				nonIndexedColumnsType.add(getColumnTypeEnum(currArField));
 				columnDefaultValues.add(dbConfig.getStringSeparatorChar() + escapeSql(currArField.getDefaultValue()) + dbConfig.getStringSeparatorChar());
 			}
+		}
+		
+		//if the id column was not added
+		if(!idColumnIncluded && idIndex != null){
+			indexedColumns.add(idIndex, String.format(insertStatementQuotedColumn,ID_COLUMN_NAME));
+			indexedColumnsType.add(idIndex, getColumnTypeEnum(dwcaCore.getId()));
 		}
 		
 		//add all non-indexed columns to the end

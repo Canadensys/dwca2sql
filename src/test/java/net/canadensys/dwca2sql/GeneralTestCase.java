@@ -14,7 +14,7 @@ import com.google.common.base.Charsets;
 public class GeneralTestCase {
 	
 	/**
-	 * TestId general
+	 * TestId: general
 	 * Test a resource with tricky characters for SQL : apostrophes and a value that ends with a backslash.
 	 * We also cover a backslash in the middle of a value, this should be left as is.
 	 */
@@ -31,6 +31,31 @@ public class GeneralTestCase {
 		
 		try {
 
+			assertTrue(new File(destinationFile).exists());
+			assertTrue(new File(expectedFile).exists());
+			assertTrue(FileUtils.contentEqualsIgnoreEOL(new File(destinationFile), new File(expectedFile),Charsets.UTF_8.name()));
+		} catch (IOException e) {
+			e.printStackTrace();
+			fail();
+		}
+	}
+	
+	/**
+	 * TestId: existingColumnAsId
+	 * Test a resource where a DarwinCore column is used as id column.
+	 */
+	@Test
+	public void testDwcaWithExistingColumnAsId() {
+		String testId = "existingColumnAsId";
+		
+		String sourceFolder = TestCaseUtil.getResourceFile("/qmor_dwca_test_id").getAbsolutePath();
+		String destinationFile = TestCaseUtil.getDestinationFilePath(testId);
+		String expectedFile = TestCaseUtil.getExpectedFile("/",testId).getAbsolutePath();
+		
+		String[] args = {"-ci", "-s",sourceFolder,"-o",destinationFile,"-f","-d","mysql"};
+		new Dwca2SQLMain(args);
+		
+		try {
 			assertTrue(new File(destinationFile).exists());
 			assertTrue(new File(expectedFile).exists());
 			assertTrue(FileUtils.contentEqualsIgnoreEOL(new File(destinationFile), new File(expectedFile),Charsets.UTF_8.name()));
