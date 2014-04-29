@@ -67,5 +67,6 @@
 		<field index="1" term="http://purl.org/dc/terms/description"/>
 		<field default="habit" term="http://purl.org/dc/terms/type"/>
 		<field default="EN" term="http://purl.org/dc/terms/language"/>
+		<field default="EN" term="http://purl.org/dc/terms/language.2"/>
 	</extension>
 </archive>

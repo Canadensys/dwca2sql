@@ -5,15 +5,12 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import net.canadensys.dwca2sql.config.Dwca2SQLConfig;
 import net.canadensys.dwca2sql.config.database.AbstractDatabaseConfig;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.gbif.dwc.text.Archive;
@@ -35,21 +32,18 @@ public class DwcaSQLProcessor {
 	private static final String OUTPUT_FILE_ENCODING = "utf-8";
 	private static final char NULL_CHAR = '\0';
 	
-	//This Regex will match all the strings that ends with one or more backslashes
-	//By default, the regular expressions ^ and $ ignore line terminators and
-	//only match at the beginning and the end, respectively, of the entire input sequence.
-	private static final Pattern ENDING_BACKSLASH_PATTERN = Pattern.compile("\\\\+$");
-	
 	private String ID_COLUMN_NAME = "id";
 	
 	private Dwca2SQLConfig appConfig = null;
 	private AbstractDatabaseConfig dbConfig = null;
-	private String createStatementQuotedColumn;
-	private String insertStatementQuotedColumn;
+	private final String createStatementQuotedColumn;
+	private final String insertStatementQuotedColumn;
 	
 	public DwcaSQLProcessor(Dwca2SQLConfig appConfig, AbstractDatabaseConfig dbConfig){
 		if(appConfig==null || dbConfig == null){
 			System.out.println("Please set proper configuration objects");
+			this.createStatementQuotedColumn = null;
+			this.insertStatementQuotedColumn = null;
 			return;
 		}
 		this.appConfig = appConfig;
@@ -144,7 +138,7 @@ public class DwcaSQLProcessor {
 						
 						switch(columnType[col]){
 							case STRING:
-								columnValues.append(dbConfig.getStringSeparatorChar()+escapeSql(currElement) + dbConfig.getStringSeparatorChar());
+								columnValues.append(dbConfig.getStringSeparatorChar()+SimpleSQLFormatHelper.escapeSql(currElement) + dbConfig.getStringSeparatorChar());
 								break;
 							case INTEGER:
 								if(StringUtils.isBlank(currElement)){
@@ -238,7 +232,7 @@ public class DwcaSQLProcessor {
 
 		String createStmtColumn;
 		for(ArchiveField currArField : sortedFieldList){
-			createStmtColumn = String.format(createStatementQuotedColumn, currArField.getTerm().simpleName(), getSQLColumnType(currArField));
+			createStmtColumn = SimpleSQLFormatHelper.formatSQLStatementComponent(currArField.getTerm().simpleName(),createStatementQuotedColumn, getSQLColumnType(currArField));
 			if(currArField.getIndex() != null){
 				if(currArField.getIndex().equals(idIndex)){
 					idColumnIncluded = true;
@@ -253,7 +247,7 @@ public class DwcaSQLProcessor {
 		
 		//if the id column was not added
 		if(!idColumnIncluded && idIndex != null){
-			indexedColumns.add(idIndex, String.format(createStatementQuotedColumn, ID_COLUMN_NAME, dbConfig.getStringColumnType()));
+			indexedColumns.add(idIndex, SimpleSQLFormatHelper.formatSQLStatementComponent(ID_COLUMN_NAME, createStatementQuotedColumn, dbConfig.getStringColumnType()));
 		}
 		
 		String columnsDef = StringUtils.join(indexedColumns, ',');
@@ -289,19 +283,19 @@ public class DwcaSQLProcessor {
 				if(currArField.getIndex().equals(idIndex)){
 					idColumnIncluded = true;
 				}
-				indexedColumns.add(String.format(insertStatementQuotedColumn,currArField.getTerm().simpleName()));
+				indexedColumns.add(SimpleSQLFormatHelper.formatSQLStatementComponent(currArField.getTerm().simpleName(),insertStatementQuotedColumn));
 				indexedColumnsType.add(getColumnTypeEnum(currArField));
 			}
 			else{
-				nonIndexedColumns.add(String.format(insertStatementQuotedColumn,currArField.getTerm().simpleName()));
+				nonIndexedColumns.add(SimpleSQLFormatHelper.formatSQLStatementComponent(currArField.getTerm().simpleName(),insertStatementQuotedColumn));
 				nonIndexedColumnsType.add(getColumnTypeEnum(currArField));
-				columnDefaultValues.add(dbConfig.getStringSeparatorChar() + escapeSql(currArField.getDefaultValue()) + dbConfig.getStringSeparatorChar());
+				columnDefaultValues.add(dbConfig.getStringSeparatorChar() + SimpleSQLFormatHelper.escapeSql(currArField.getDefaultValue()) + dbConfig.getStringSeparatorChar());
 			}
 		}
 		
 		//if the id column was not added
 		if(!idColumnIncluded && idIndex != null){
-			indexedColumns.add(idIndex, String.format(insertStatementQuotedColumn,ID_COLUMN_NAME));
+			indexedColumns.add(idIndex, SimpleSQLFormatHelper.formatSQLStatementComponent(ID_COLUMN_NAME,insertStatementQuotedColumn));
 			indexedColumnsType.add(idIndex, getColumnTypeEnum(dwcaCore.getId()));
 		}
 		
@@ -317,40 +311,8 @@ public class DwcaSQLProcessor {
 
 		return analysisResult;
 	}
-	
-	/**
-	 * Escapes the characters in a String to be suitable for a SQL query.
-	 * This is NOT a solution to SQL injection.
-	 * The function only handles apostrophes and strings that end with a backslash.
-	 * TODO use canadensys jar instead of custom method
-	 * @param str
-	 * @return
-	 */
-	public static String escapeSql(String str){
-		if(str == null){
-			return null;
-		}
-		str = StringUtils.replace(str,"'", "''");
-		//avoid to be escaped by an ending backslash
-		if(str.endsWith("\\")){
-			Matcher m = ENDING_BACKSLASH_PATTERN.matcher(str);
-			if(m.find()){
-				String backslahes = m.group();
-				int index = str.lastIndexOf(backslahes);
-				//double the number of backslashes
-				String replacementStr = backslahes+backslahes;
-				//replace the backslashes in the string
-				StringBuilder sb = new StringBuilder(str);
-				sb.replace(index, str.length(), replacementStr);
-				return sb.toString();
-			}
-			else{
-				System.out.println("The value " + str + " seems to end with a backslash but the Regex fails to find it.");
-				System.out.println("This is a bug!");
-			}
-		}
-		return str;
-	}
+
+
 	
 	/**
 	 * This function is used to map the ArchiveField type with the inner type. This allows
