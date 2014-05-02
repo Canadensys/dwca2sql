@@ -53,7 +53,7 @@ These are the third-party software tools used for this tool:
 
 | Component | Version | Developed by |License|Source|
 | -------- | ----------- | ------- |-------  |-------  |
-|DarwinCore Archive Reader|	1.9.1	| GBIF	| Apache License 2.0	|http://code.google.com/p/darwincore/wiki/DarwinCoreArchiveReader|
+|DarwinCore Archive Reader|	1.14	| GBIF	| Apache License 2.0	|https://github.com/gbif/dwca-reader|
 |Apache Commons IO|	2.1	| Apache|	 Apache License 2.0|	http://commons.apache.org/io/|
 |Apache Commons CLI|	1.2	| Apache	| Apache License 2.0	|http://commons.apache.org/cli/|
 |Apache Commons Lang|	3.1	| Apache	| Apache License 2.0|	http://commons.apache.org/lang/|
