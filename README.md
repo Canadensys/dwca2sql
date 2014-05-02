@@ -41,7 +41,7 @@ Import into MySQL:
 mysql -hHOST -uUSER -pPASSWORD -DDATABASE_NAME --default_character_set utf8 -e "source /tmp/unicorn.sql"
 ```
 ## Known limitations
-* Data types are taken from the meta.xml file, not from the Darwin Core definitions.
+* Data types are somehow limited to text. They could be read from the meta.xml file ([see Issue #3](https://github.com/Canadensys/dwca2sql/issues/4#issuecomment-41796518)) but this is incorrect according to the [XSD](http://darwincore.googlecode.com/svn/trunk/text/tdwg_dwc_text.xsd).
 * Only mysql and postgres are implemented for database type.
 * Only executable from the command line.
 
