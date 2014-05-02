@@ -1,5 +1,8 @@
 Version History
 ===============
+Version 0.2.3 2013-05-02
+* Fixed [Issue #3](https://github.com/Canadensys/dwca2sql/issues/3): RowType causing invalid SQL
+
 Version 0.2.2 2013-04-15
 * Fixed [Issue #2](https://github.com/Canadensys/dwca2sql/issues/2): handling of id column when used as Dwc term
 
